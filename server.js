@@ -6,13 +6,13 @@ const util = require('util');
 
 const PORT = 3001;
 
-const readFromFile = util.promisify(fs.readFile);
-
 // Sets up express app to handle data parsing
 const app = express();
 app.use(express.urlencoded({ extended: true}));
 app.use(express.json());
 app.use(express.static('public'));
+
+const readFromFile = util.promisify(fs.readFile);
 
 // Route to notes.html file
 app.get('/notes', (req, res) => {
@@ -42,7 +42,7 @@ app.post('/api/notes', (req, res) => {
                 const jsonParse = JSON.parse(data);
                 jsonParse.push(newNote);
                 fs.writeFile('./db/db.json', JSON.stringify(jsonParse, null, 4), 
-                (err) => err ? console.error(err) : console.info(`\nData written to ${newNote}`));
+                (err) => err ? console.error(err) : console.info('Success!'));
             }
         })
         res.json('note has been added')
@@ -51,11 +51,22 @@ app.post('/api/notes', (req, res) => {
     }
 });
 
+// Delete notes
+app.delete('/api/notes/:id', (req, res) => {
+    readFromFile('./db/db.json')
+    .then((data) => JSON.parse(data))
+    .then((json) => {
+        const result = json.filter((note) => note.id !== req.params.id);
 
-// DELETE NOTES??
+        fs.writeFile('./db/db.json', JSON.stringify(result, null, 4), (err) => err ? console.error(err) : console.info('Success!'));
+
+        res.json(`Item ${req.params.title} has been deleted!`);
+    })
+})
 
 
-// returns the index.html file
+
+// Returns the index.html file
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '/public/index.html'));
 });
