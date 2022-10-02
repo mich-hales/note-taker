@@ -4,7 +4,7 @@ const path = require('path');
 const uniqid = require('uniqid');
 const util = require('util');
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 // Sets up express app to handle data parsing
 const app = express();
