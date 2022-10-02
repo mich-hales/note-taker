@@ -2,8 +2,11 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const uniqid = require('uniqid');
+const util = require('util');
 
 const PORT = 3001;
+
+const readFromFile = util.promisify(fs.readFile);
 
 // Sets up express app to handle data parsing
 const app = express();
@@ -18,16 +21,10 @@ app.get('/notes', (req, res) => {
 
 // API Routes -- reads the db.json file and returns all saved notes as JSON
 app.get('/api/notes', (req, res) => {
-    fs.readFile('./db/db.json', 'utf8', (err, data) => {
-        if (err) {
-            console.error(err);
-        };
-        res.json(JSON.parse(data));
+    readFromFile('./db/db.json').then((data) => {
+        res.json(JSON.parse(data))
     });
 });
-    
-// random number
-
 
 // Receives a new note to save on the request body, adds to db.json file, and returns new note to client
 app.post('/api/notes', (req, res) => {
@@ -44,12 +41,18 @@ app.post('/api/notes', (req, res) => {
             } else {
                 const jsonParse = JSON.parse(data);
                 jsonParse.push(newNote);
-                fs.writeFile(newNote, json.stringify(jsonParse, null, 4), 
-                (err) => err ? console.error(err) : console.info(`nData written to ${newNote}`))
+                fs.writeFile('./db/db.json', JSON.stringify(jsonParse, null, 4), 
+                (err) => err ? console.error(err) : console.info(`\nData written to ${newNote}`));
             }
         })
+        res.json('note has been added')
+    } else {
+        res.error('note failed to add')
     }
-})
+});
+
+
+// DELETE NOTES??
 
 
 // returns the index.html file
